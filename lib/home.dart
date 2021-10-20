@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:opencv/core/core.dart';
+import 'package:opencv/opencv.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -8,6 +13,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final picker = ImagePicker();
+  File? file;
+  Image? image;
+
+  getImagePicker() async {
+    var pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    var tempFile = File(pickedFile!.path);
+
+    setState(() {
+      file = tempFile;
+      image = Image.file(tempFile);
+    });
+  }
+
+  applyFilter() async {
+    var bytes = await file!.readAsBytes();
+    var res = await ImgProc.blur(bytes, [45, 45], [20, 30], Core.borderReflect);
+
+    setState(() {
+      image = Image.memory(res); // Criando imagem em memória
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +57,7 @@ class _HomePageState extends State<HomePage> {
                   TextButton.icon(
                     icon: Icon(Icons.add_a_photo_outlined),
                     label: Text("Adicionar"),
-                    onPressed: null,
+                    onPressed: getImagePicker,
                   ),
                   TextButton.icon(
                     icon: Icon(Icons.cancel_outlined),
@@ -42,7 +70,9 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               // Para pegar o tamanho que sobrar da tela
               child: Container(
+                alignment: Alignment.center,
                 color: Colors.red,
+                child: image != null ? image : null,
               ),
             ),
             Container(
@@ -53,11 +83,15 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.all(10.0),
                 children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    color: Colors.white,
-                    margin: EdgeInsets.only(right: 7.0),
+                  GestureDetector(
+                    onTap: applyFilter,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.white,
+                      margin: EdgeInsets.only(right: 7.0),
+                      child: Center(child: Text("Blur")),
+                    ),
                   ),
                   Container(
                     width: 80,
