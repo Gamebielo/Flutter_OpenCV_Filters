@@ -9,6 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false, // Retira o banner de debug
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
